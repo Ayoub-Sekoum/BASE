@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCONTRO MORTALE - Fase di Registrazione</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --blood: #e60000;
+            --deep-blood: #8a0000;
+            --void: #0a0a0a;
+            --ui-border: #333;
+        }
+
+        body {
+            background-color: var(--void);
+            color: #ccc;
+            font-family: 'Teko', sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+            user-select: none;
+        }
+
+        h1, h2, h3, .anton-font {
+            font-family: 'Anton', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .cinematic-noise {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.05"/%3E%3C/svg%3E');
+            opacity: 0.8;
+        }
+
+        .vignette {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 9998;
+            background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.9) 100%);
+        }
+
+        .bg-pulse {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, rgba(230,0,0,0.03) 0%, transparent 70%);
+            animation: pulse-bg 4s infinite alternate;
+            z-index: -1;
+        }
+
+        @keyframes pulse-bg {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.2); opacity: 1; }
+        }
+
+        .name-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--ui-border);
+            color: #fff;
+            font-family: 'Anton', sans-serif;
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 5px;
+            width: 100%;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        .name-input:focus {
+            outline: none;
+            border-bottom-color: var(--blood);
+            text-shadow: 0 0 10px var(--blood);
+            background: rgba(230,0,0,0.1);
+        }
+
+        .brutal-btn {
+            background: transparent;
+            color: white;
+            border: 2px solid var(--blood);
+            font-family: 'Anton', sans-serif;
+            text-transform: uppercase;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.1s;
+            cursor: pointer;
+            box-shadow: inset 0 0 0 0 var(--blood);
+        }
+        .brutal-btn:hover {
+            box-shadow: inset 0 0 20px 5px var(--blood), 0 0 20px var(--blood);
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            border-color: #ff3333;
+            transform: scale(1.02);
+        }
+        .brutal-btn:active {
+            transform: scale(0.95);
+            background: var(--blood);
+        }
+
+        .match-card {
+            background: #080808;
+            border: 1px solid #222;
+            position: relative;
+            width: 240px;
+            box-shadow: 5px 5px 0px rgba(0,0,0,0.8);
+            transition: transform 0.2s;
+        }
+        .match-card:hover {
+            border-color: #550000;
+            transform: translateY(-2px);
+        }
+        
+        .vs-badge {
+            position: absolute;
+            top: 50%; left: -12px;
+            transform: translateY(-50%);
+            background: #000;
+            color: var(--blood);
+            border: 1px solid var(--blood);
+            font-family: 'Anton', sans-serif;
+            font-size: 0.9rem;
+            padding: 4px 6px;
+            box-shadow: 0 0 10px var(--deep-blood);
+            z-index: 10;
+        }
+
+        .fighter {
+            padding: 12px 15px;
+            font-size: 1.3rem;
+            letter-spacing: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1a1a1a;
+            position: relative;
+        }
+        .fighter:last-child { border-bottom: none; }
+
+        .winner {
+            color: #fff;
+            text-shadow: 0 0 15px var(--blood);
+            font-weight: bold;
+            animation: winner-pulse 2s infinite;
+        }
+        @keyframes winner-pulse {
+            0% { text-shadow: 0 0 10px var(--blood); }
+            50% { text-shadow: 0 0 25px var(--blood), 0 0 5px #fff; }
+            100% { text-shadow: 0 0 10px var(--blood); }
+        }
+
+        .loser-slash {
+            color: #333 !important;
+            position: relative;
+            overflow: visible;
+        }
+        .loser-slash::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 4px;
+            background: var(--blood);
+            transform: rotate(-4deg) scaleX(1.1);
+            box-shadow: 0 0 10px var(--blood), 0 0 20px var(--deep-blood);
+            border-radius: 50%;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .selectable {
+            cursor: crosshair;
+            transition: background-color 0.2s, text-shadow 0.2s;
+        }
+        .selectable:hover {
+            background-color: rgba(230, 0, 0, 0.2);
+            text-shadow: 0 0 15px var(--blood);
+        }
+        .selectable:active {
+            background-color: var(--blood);
+        }
+
+        .tbd { color: #222; font-style: italic; }
+
+        .glitch-extreme {
+            position: relative;
+            color: white;
+        }
+        .glitch-extreme::before, .glitch-extreme::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--void);
+        }
+        .glitch-extreme::before {
+            left: 3px; text-shadow: -2px 0 red;
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+        .glitch-extreme::after {
+            left: -3px; text-shadow: -2px 0 blue;
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { clip: rect(20px, 9999px, 85px, 0); }
+            20% { clip: rect(45px, 9999px, 16px, 0); }
+            40% { clip: rect(76px, 9999px, 4px, 0); }
+            60% { clip: rect(12px, 9999px, 55px, 0); }
+            80% { clip: rect(88px, 9999px, 21px, 0); }
+            100% { clip: rect(34px, 9999px, 66px, 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(65px, 9999px, 12px, 0); }
+            20% { clip: rect(11px, 9999px, 88px, 0); }
+            40% { clip: rect(44px, 9999px, 33px, 0); }
+            60% { clip: rect(87px, 9999px, 5px, 0); }
+            80% { clip: rect(2px, 9999px, 95px, 0); }
+            100% { clip: rect(54px, 9999px, 41px, 0); }
+        }
+
+        @keyframes brutal-shake {
+            0% { transform: translate(3px, 3px) rotate(0deg); }
+            10% { transform: translate(-3px, -4px) rotate(-2deg); }
+            20% { transform: translate(-5px, 0px) rotate(2deg); }
+            30% { transform: translate(5px, 4px) rotate(0deg); }
+            40% { transform: translate(3px, -3px) rotate(2deg); }
+            50% { transform: translate(-3px, 4px) rotate(-2deg); }
+            60% { transform: translate(-5px, 3px) rotate(0deg); }
+            70% { transform: translate(5px, 3px) rotate(-2deg); }
+            80% { transform: translate(-3px, -3px) rotate(2deg); }
+            90% { transform: translate(3px, 4px) rotate(0deg); }
+            100% { transform: translate(3px, -4px) rotate(-2deg); }
+        }
+        .shake-active {
+            animation: brutal-shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        ::-webkit-scrollbar { height: 12px; }
+        ::-webkit-scrollbar-track { background: #050505; border-top: 1px solid #222; }
+        ::-webkit-scrollbar-thumb { background: var(--blood); border: 1px solid #000; }
+        ::-webkit-scrollbar-thumb:hover { background: #ff3333; }
+
+        .round-column { display: flex; flex-direction: column; gap: 2rem; position: relative; }
+        .col-connector::after {
+            content: '»';
+            position: absolute; right: -35px; top: 50%; transform: translateY(-50%);
+            color: #333; font-size: 2.5rem; font-family: 'Anton';
+        }
+        .col-connector:last-child::after { display: none; }
+        
+        .round-title {
+            text-align: center; color: #555; margin-bottom: 1rem;
+            font-size: 1.2rem; letter-spacing: 4px; border-bottom: 1px solid #222; padding-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body id="main-body">
+    <div class="cinematic-noise"></div>
+    <div class="vignette"></div>
+    <div class="bg-pulse"></div>
+
+    <div id="setup-screen" class="min-h-screen flex flex-col items-center justify-center p-8 relative z-50 transition-opacity duration-1000">
+        <div class="text-center mb-10">
+            <h1 class="text-5xl md:text-7xl mb-2 glitch-extreme tracking-widest" data-text="REGISTRA I CONDANNATI">REGISTRA I CONDANNATI</h1>
+            <div class="flex items-center justify-center gap-4 mt-8 mb-2">
+                <span class="text-red-700 font-bold tracking-widest text-xl md:text-2xl uppercase">NUMERO VITTIME:</span>
+                <input type="number" id="num-fighters" min="4" max="64" value="20" onchange="generateInputs()" class="name-input w-24 text-center text-3xl font-bold bg-black" style="color: var(--blood);">
+            </div>
+            <p class="text-gray-500 text-lg mt-2">Scegli il numero di lottatori e modifica i loro nomi. (Min 4, Max 64)</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full max-w-6xl mb-12" id="inputs-container">
+            <!-- Gli input verranno generati dal JS -->
+        </div>
+
+        <button onclick="window.startTournament()" class="brutal-btn px-12 py-5 text-3xl tracking-widest">
+            INIZIA IL MASSACRO
+        </button>
+    </div>
+
+    <div id="tournament-screen" class="hidden min-h-screen flex-col items-center pt-8 pb-16 relative z-40">
+        <header class="text-center mb-10 w-full px-4 border-b border-red-900 pb-6 bg-black bg-opacity-50">
+            <h1 class="text-4xl md:text-6xl mb-2 glitch-extreme tracking-wider" data-text="SCONTRO MORTALE">SCONTRO MORTALE</h1>
+            
+            <div class="flex justify-center gap-6 mt-8 flex-col items-center">
+                <p class="text-red-500 font-bold text-xl md:text-2xl tracking-widest animate-pulse">CLICCA SUL NOME DEL COMBATTENTE PER DECRETARNE LA VITTORIA</p>
+                <button onclick="location.reload()" class="mt-4 brutal-btn px-6 py-3 text-sm tracking-widest">
+                    NUOVI NOMI (RIAVVIA)
+                </button>
+            </div>
+        </header>
+
+        <main class="w-full overflow-x-auto px-10">
+            <div class="flex gap-16 min-w-max mx-auto py-8" id="bracket-ui">
+                <!-- Il bracket verrà iniettato qui -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const defaultNames = [
+            "Teschio", "Macellaio", "Vipera", "Spaccaossa", "Demone", "Ombra", "Titano", "Ira", "Furia", "Cacciatore",
+            "Fantasma", "Golia", "Corvo", "Iena", "Ruggito", "Bestia", "Cobra", "Mastino", "Drago", "Sangue",
+            "Carnefice", "Mietitore", "Lupo", "Orso", "Squalo", "Toro", "Falco", "Scorpione", "Ragno", "Gargoyle",
+            "Mostro", "Spettro", "Omicidio", "Boia", "Cicatrice", "Morsa", "Artiglio", "Zanna", "Veleno", "Bruto",
+            "Guerriero", "Assassino", "Lama", "Ascia", "Martello", "Incubo", "Flagello", "Abisso", "Caos", "Peste",
+            "Gelo", "Fiamma", "Fulmine", "Tuono", "Tempesta", "Rovina", "Tristo", "Oscuro", "Carne", "Polvere",
+            "Vendetta", "Rabbia", "Inferno", "Morte"
+        ];
+
+        window.customFighters = [];
+        window.tournamentRounds = [];
+        
+        let slamSynth = null;
+        let actionKick = null;
+        let actionBass = null;
+        let actionLoop = null;
+
+        async function initAudioEngine() {
+            if (typeof Tone === "undefined") {
+                console.warn("Tone.js non caricato correttamente.");
+                return;
+            }
+            
+            await Tone.start();
+            
+            slamSynth = new Tone.MembraneSynth({
+                pitchDecay: 0.01,
+                octaves: 6,
+                oscillator: { type: "square4" },
+                envelope: { attack: 0.001, decay: 0.5, sustain: 0.01, release: 1.5, attackCurve: "exponential" }
+            });
+            
+            const distort = new Tone.Distortion(0.8).toDestination();
+            slamSynth.connect(distort);
+            const reverb = new Tone.Reverb({ decay: 3, preDelay: 0.1 }).toDestination();
+            distort.connect(reverb);
+
+            actionKick = new Tone.MembraneSynth({
+                pitchDecay: 0.05,
+                octaves: 4,
+                oscillator: { type: 'square4' },
+                envelope: { attack: 0.001, decay: 0.2, sustain: 0, release: 0.2 }
+            }).toDestination();
+            actionKick.volume.value = -2;
+
+            actionBass = new Tone.FMSynth({
+                harmonicity: 2,
+                modulationIndex: 5,
+                oscillator: { type: 'sawtooth' },
+                modulation: { type: 'square' },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.5 }
+            });
+            
+            const bassDist = new Tone.Distortion(0.5).toDestination();
+            const bassFilter = new Tone.Filter(800, "lowpass").connect(bassDist);
+            actionBass.connect(bassFilter);
+            actionBass.volume.value = -8;
+
+            const bassNotes = ["C2", "C2", "C2", "D#2", "C2", "C2", "F2", "D#2"];
+            let step = 0;
+            
+            actionLoop = new Tone.Loop((time) => {
+                if(actionBass) actionBass.triggerAttackRelease(bassNotes[step % bassNotes.length], "8n", time);
+                if(step % 2 === 0 && actionKick) actionKick.triggerAttackRelease("C1", "8n", time);
+                step++;
+            }, "8n");
+
+            Tone.Transport.bpm.value = 115;
+        }
+
+        function playBrutalImpact() {
+            try {
+                if (slamSynth && typeof Tone !== "undefined" && Tone.context.state === "running") {
+                    slamSynth.triggerAttackRelease("C1", "8n");
+                }
+            } catch(e) { console.warn("Audio impact error", e); }
+        }
+
+        window.onload = () => {
+            generateInputs();
+        };
+
+        window.generateInputs = function() {
+            const container = document.getElementById('inputs-container');
+            const numInput = document.getElementById('num-fighters');
+            let num = parseInt(numInput.value) || 20;
+            if(num < 4) num = 4;
+            if(num > 64) num = 64;
+            numInput.value = num;
+
+            const currentInputs = document.querySelectorAll('.fighter-name-input');
+            const savedNames = Array.from(currentInputs).map(inp => inp.value);
+
+            container.innerHTML = '';
+            for(let i=0; i<num; i++) {
+                const inputWrapper = document.createElement('div');
+                inputWrapper.className = 'flex flex-col items-center bg-black bg-opacity-50 p-2 border border-gray-900';
+                
+                const label = document.createElement('span');
+                label.className = 'text-red-900 text-xs font-bold mb-1 tracking-widest';
+                label.innerText = `Soggetto ${i+1 < 10 ? '0'+(i+1) : i+1}`;
+                
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = savedNames[i] !== undefined ? savedNames[i] : (defaultNames[i] || `LOTTATORE ${i+1}`);
+                input.className = 'name-input fighter-name-input';
+                input.maxLength = 15;
+                
+                inputWrapper.appendChild(label);
+                inputWrapper.appendChild(input);
+                container.appendChild(inputWrapper);
+            }
+        };
+
+        window.startTournament = function() {
+            // Raccoglie i nomi dagli input dell'utente
+            const inputs = document.querySelectorAll('.fighter-name-input');
+            window.customFighters = Array.from(inputs).map(inp => inp.value.trim().toUpperCase() || "CARNE IGNOTA");
+
+            // Dissolvenza della UI iniziale
+            document.getElementById('setup-screen').style.opacity = '0';
+
+            // Prova ad avviare l'audio, in modo non bloccante
+            try {
+                initAudioEngine().then(() => {
+                    playBrutalImpact();
+                    Tone.Transport.start();
+                    if(actionLoop) actionLoop.start(0);
+                }).catch(e => console.warn("Audio start blocked by browser.", e));
+            } catch (error) {
+                console.warn("Audio initialization failed.", error);
+            }
+
+            // Cambia schermata
+            setTimeout(() => {
+                document.getElementById('setup-screen').style.display = 'none';
+                document.getElementById('tournament-screen').classList.remove('hidden');
+                document.getElementById('tournament-screen').classList.add('flex');
+                
+                buildBracketStructure();
+            }, 800);
+        };
+
+        function getRoundName(numMatches) {
+            switch(numMatches) {
+                case 1: return 'GIUDIZIO FINALE';
+                case 2: return 'INFERNO';
+                case 4: return 'CARNEFICINA';
+                case 8: return 'IL MASSACRO';
+                case 16: return 'SCONTRO TOTALE';
+                case 32: return 'APOCALISSE';
+                default: return 'GIRONE';
+            }
+        }
+
+        function buildBracketStructure() {
+            let players = [...window.customFighters].sort(() => Math.random() - 0.5);
+            let N = players.length;
+            let P = 1;
+            while(P < N) P *= 2; // Trova la potenza di 2 successiva (es. 20 -> 32)
+            
+            let mainRoundPlayers = P === N ? N : P / 2;
+            let numMatchesInMain = mainRoundPlayers / 2;
+            let numPrelim = N - mainRoundPlayers;
+
+            window.tournamentRounds = [];
+            let prelims = [];
+            
+            // Turno preliminare per abbattere i numeri dispari/non-potenze
+            if (numPrelim > 0) {
+                for(let i = 0; i < numPrelim; i++) {
+                    prelims.push({ id: `pre_${i}`, p1: players.pop(), p2: players.pop(), winner: null });
+                }
+                window.tournamentRounds.push({
+                    key: 'preliminari',
+                    name: 'SANGUE NUOVO',
+                    matches: prelims,
+                    class: 'justify-around'
+                });
+            }
+
+            // Mappa i preliminari sui posti liberi del primo turno ufficiale
+            let r1Slots = new Array(mainRoundPlayers).fill(null);
+            let tbdIndices = [];
+            for(let i=0; i<numMatchesInMain; i++) tbdIndices.push(i*2); // Spargi uniformemente
+            for(let i=0; i<numMatchesInMain; i++) tbdIndices.push(i*2 + 1);
+
+            for(let i=0; i<numPrelim; i++) {
+                r1Slots[tbdIndices[i]] = { type: 'tbd', prelimId: i };
+            }
+            // Riempi i restanti con i giocatori che passano diretti
+            for(let i=0; i<mainRoundPlayers; i++) {
+                if(!r1Slots[i]) r1Slots[i] = { type: 'player', name: players.pop() };
+            }
+
+            // Crea le partite del primo turno ufficiale (es. Ottavi o Quarti)
+            let r1Matches = [];
+            for(let i=0; i<numMatchesInMain; i++) {
+                let s1 = r1Slots[i*2];
+                let s2 = r1Slots[i*2+1];
+                r1Matches.push({
+                    id: `r1_${i}`,
+                    p1: s1.type === 'tbd' ? "TBD" : s1.name,
+                    p2: s2.type === 'tbd' ? "TBD" : s2.name,
+                    winner: null,
+                    feed1: s1.type === 'tbd' ? s1.prelimId : null,
+                    feed2: s2.type === 'tbd' ? s2.prelimId : null
+                });
+            }
+            
+            window.tournamentRounds.push({
+                key: 'r1',
+                name: getRoundName(numMatchesInMain),
+                matches: r1Matches,
+                class: 'justify-around'
+            });
+
+            // Genera in automatico tutti i restanti turni (Semis, Finali)
+            let currentMatches = numMatchesInMain;
+            let roundIdx = 2;
+            while(currentMatches > 1) {
+                currentMatches /= 2;
+                let matches = [];
+                for(let i=0; i<currentMatches; i++) {
+                    matches.push({ id: `r${roundIdx}_${i}`, p1: "TBD", p2: "TBD", winner: null });
+                }
+                window.tournamentRounds.push({
+                    key: `r${roundIdx}`,
+                    name: getRoundName(currentMatches),
+                    matches: matches,
+                    class: currentMatches === 1 ? 'justify-center' : 'justify-around'
+                });
+                roundIdx++;
+            }
+            
+            renderBracket();
+        }
+
+        window.declareWinner = function(roundIndex, matchIndex, playerNum) {
+            let match = window.tournamentRounds[roundIndex].matches[matchIndex];
+            if (match.winner || match.p1 === "TBD" || match.p2 === "TBD") return;
+            
+            match.winner = playerNum === 1 ? match.p1 : match.p2;
+            
+            playBrutalImpact();
+            flashRedScreen();
+
+            // Calcola dove finisce il vincitore
+            if (roundIndex < window.tournamentRounds.length - 1) {
+                let nextRound = window.tournamentRounds[roundIndex + 1];
+                if (window.tournamentRounds[roundIndex].key === 'preliminari') {
+                    for(let m of nextRound.matches) {
+                        if (m.feed1 === matchIndex) { m.p1 = match.winner; break; }
+                        if (m.feed2 === matchIndex) { m.p2 = match.winner; break; }
+                    }
+                } else {
+                    let nextMatchIndex = Math.floor(matchIndex / 2);
+                    let isPlayer1 = matchIndex % 2 === 0;
+                    let nextMatch = nextRound.matches[nextMatchIndex];
+                    if (isPlayer1) nextMatch.p1 = match.winner;
+                    else nextMatch.p2 = match.winner;
+                }
+                renderBracket();
+            } else {
+                renderBracket();
+                setTimeout(() => showChampion(match.winner), 500);
+            }
+        };
+
+        function createMatchHTML(match, roundIndex, matchIndex) {
+            let canSelect = !match.winner && match.p1 !== "TBD" && match.p2 !== "TBD";
+            
+            let p1Click = canSelect ? `onclick="window.declareWinner(${roundIndex}, ${matchIndex}, 1)"` : '';
+            let p2Click = canSelect ? `onclick="window.declareWinner(${roundIndex}, ${matchIndex}, 2)"` : '';
+
+            let p1Class = "fighter anton-font " + (canSelect ? "selectable " : "") + (match.winner === match.p1 ? "winner" : (match.winner === match.p2 ? "loser-slash" : (match.p1 === "TBD" ? "tbd" : "")));
+            let p2Class = "fighter anton-font " + (canSelect ? "selectable " : "") + (match.winner === match.p2 ? "winner" : (match.winner === match.p1 ? "loser-slash" : (match.p2 === "TBD" ? "tbd" : "")));
+            
+            let p1Icon = match.winner === match.p2 ? '<span class="text-red-800 text-sm opacity-50">☠</span>' : '';
+            let p2Icon = match.winner === match.p1 ? '<span class="text-red-800 text-sm opacity-50">☠</span>' : '';
+
+            return `
+                <div class="match-card" id="match-${match.id}">
+                    <div class="vs-badge">VS</div>
+                    <div class="${p1Class}" ${p1Click}>
+                        <span>${match.p1}</span> ${p1Icon}
+                    </div>
+                    <div class="${p2Class}" ${p2Click}>
+                        <span>${match.p2}</span> ${p2Icon}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderBracket() {
+            const container = document.getElementById('bracket-ui');
+            container.innerHTML = '';
+
+            window.tournamentRounds.forEach((round, index) => {
+                let col = document.createElement('div');
+                col.className = `round-column col-connector ${round.class || 'justify-around'}`;
+                
+                let title = document.createElement('h3');
+                title.className = 'round-title anton-font';
+                title.innerText = round.name;
+                col.appendChild(title);
+
+                round.matches.forEach((match, matchIndex) => {
+                    let matchWrapper = document.createElement('div');
+                    matchWrapper.innerHTML = createMatchHTML(match, index, matchIndex);
+                    col.appendChild(matchWrapper.firstElementChild);
+                });
+
+                container.appendChild(col);
+            });
+        }
+
+        function flashRedScreen() {
+            const body = document.getElementById('main-body');
+            body.classList.remove('shake-active');
+            void body.offsetWidth; 
+            body.classList.add('shake-active');
+            
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-red-700 z-50 pointer-events-none mix-blend-overlay transition-opacity duration-500';
+            overlay.style.opacity = '0.8';
+            document.body.appendChild(overlay);
+            
+            setTimeout(() => overlay.style.opacity = '0', 50);
+            setTimeout(() => overlay.remove(), 550);
+        }
+
+        function showChampion(winnerName) {
+            try {
+                if (typeof Tone !== "undefined") Tone.Transport.stop();
+                if(slamSynth && Tone.context.state === "running") {
+                    slamSynth.triggerAttackRelease("C0", "2n");
+                    setTimeout(() => slamSynth.triggerAttackRelease("C1", "1m"), 500);
+                }
+            } catch(e) {}
+
+            let championBanner = document.createElement('div');
+            championBanner.id = 'champion-banner';
+            championBanner.className = 'fixed inset-0 flex items-center justify-center bg-black bg-opacity-90 z-[9999] opacity-0 transition-opacity duration-1000';
+            
+            championBanner.innerHTML = `
+                <div class="text-center border-y-4 border-red-700 py-12 px-24 bg-black w-full relative overflow-hidden shake-active">
+                    <div class="absolute inset-0 bg-red-900 opacity-20 pulse-bg"></div>
+                    <h2 class="text-4xl text-gray-500 uppercase mb-4 tracking-widest relative z-10">Sopravvissuto</h2>
+                    <h1 class="text-8xl md:text-9xl font-bold text-white glitch-extreme relative z-10" data-text="${winnerName}">${winnerName}</h1>
+                    <p class="mt-8 text-2xl text-red-600 uppercase tracking-widest relative z-10 font-bold">Il resto è cenere.</p>
+                    
+                    <button onclick="location.reload()" class="mt-12 brutal-btn px-8 py-3 text-xl relative z-10">
+                        NUOVO TORNEO
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(championBanner);
+            setTimeout(() => championBanner.style.opacity = '1', 100);
+        }
+    </script>
+</body>
+</html>
